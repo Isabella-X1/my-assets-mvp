@@ -654,6 +654,8 @@
   .modal-title { font-size: 16px; font-weight: 600; }
   .modal-close { border: 0; padding: 4px; color: var(--dim); background: none; font-size: 20px; line-height: 1; cursor: pointer; }
   .modal .primary-btn { margin-top: 18px; }
+  .modal .danger-btn { width: 100%; margin-top: 10px; padding: 11px; border: 1px solid rgba(255,59,48,.7); background: transparent; color: var(--red); font-size: 13px; cursor: pointer; }
+  .sort-note { padding: 12px 16px 2px; color: var(--dim); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -719,6 +721,7 @@
       <div class="seg" id="holdings-seg">
         <div class="seg-item active" data-view="account">BY ACCOUNT · 按账户</div>
         <div class="seg-item" data-view="type">BY TYPE · 按类型</div>
+        <div class="seg-item" data-view="return">BY RETURN · 按收益率</div>
       </div>
 
       <!-- View: BY ACCOUNT -->
@@ -829,6 +832,10 @@
         <div class="holding"><div class="lhs"><div class="h-name">余额宝</div><div class="h-meta"><span>1.42% 7D</span></div></div><div class="rhs"><div class="amount">32,458.42</div><div class="change dim">支付宝</div></div></div>
         <div class="holding"><div class="lhs"><div class="h-name">建行活期</div><div class="h-meta"><span>0.20%</span></div></div><div class="rhs"><div class="amount">12,300.00</div><div class="change dim">建行</div></div></div>
         <div class="holding"><div class="lhs"><div class="h-name">招行活期</div><div class="h-meta"><span>0.20%</span></div></div><div class="rhs"><div class="amount">8,500.00</div><div class="change dim">招行</div></div></div>
+      </div>
+      <div class="view" data-view-body="return" style="display:none">
+        <div class="sort-note">按已记录的收益率从高到低排列。不同产品的收益口径可能不同，请以产品详情为准。</div>
+        <div id="return-list"></div>
       </div>
     </div>
     <!-- ============ PAGE 3: ADD ============ -->
@@ -980,10 +987,10 @@
     <!-- ============ PAGE 5: PROFILE ============ -->
     <div class="page" data-page="profile">
       <div class="profile-hero">
-        <div class="avatar">L</div>
+        <div class="avatar">I</div>
         <div class="info">
           <div class="id">USER · wxid_****3f2c</div>
-          <div class="name">Lu 的资产记录</div>
+          <div class="name">Isabella 的资产记录</div>
           <div class="stats">
             <div><span class="k">HOLDINGS</span><span class="v">9</span></div>
             <div><span class="k">ACCOUNTS</span><span class="v">3</span></div>
@@ -1068,6 +1075,19 @@
       <div class="field"><label for="account-name">账户名称 *</label><input id="account-name" required maxlength="24" placeholder="例如：工行 · 尾号 8899" /></div>
       <div class="field"><label for="account-kind">账户类型</label><select id="account-kind"><option>银行卡</option><option>支付平台</option><option>现金账户</option><option>其他</option></select></div>
       <button class="primary-btn" type="submit">保存账户</button>
+    </form>
+  </div>
+  <div class="modal-backdrop" id="asset-modal" aria-hidden="true">
+    <form class="modal" id="asset-edit-form">
+      <div class="modal-head"><div class="modal-title">编辑资产</div><button type="button" class="modal-close" data-close-asset aria-label="关闭">×</button></div>
+      <div class="field"><label for="edit-asset-name">资产名称 *</label><input id="edit-asset-name" required maxlength="36" /></div>
+      <div class="form-grid">
+        <div class="field"><label for="edit-asset-amount">当前金额（元）*</label><input id="edit-asset-amount" required inputmode="decimal" /></div>
+        <div class="field"><label for="edit-asset-rate">收益率 *</label><input id="edit-asset-rate" required inputmode="decimal" placeholder="例如：3.05%" /></div>
+      </div>
+      <div class="field"><label for="edit-asset-date">到期日（选填）</label><input id="edit-asset-date" type="date" /></div>
+      <button class="primary-btn" type="submit">保存修改</button>
+      <button class="danger-btn" type="button" id="delete-asset">删除这笔资产</button>
     </form>
   </div>
 </div>
@@ -1180,6 +1200,84 @@ accountForm.addEventListener('submit', (e) => {
   closeAccountModal();
 });
 
+/* Holdings: edit/delete a record and view all records sorted by recorded return. */
+const accountHoldings = [...document.querySelector('[data-view-body="account"]').querySelectorAll('.holding')];
+const assetIdByName = new Map();
+accountHoldings.forEach((row, index) => {
+  const id = `asset-${index + 1}`;
+  row.dataset.assetId = id;
+  assetIdByName.set(row.querySelector('.h-name').textContent.trim(), id);
+});
+document.querySelectorAll('[data-view-body="type"] .holding').forEach(row => {
+  row.dataset.assetId = assetIdByName.get(row.querySelector('.h-name').textContent.trim()) || '';
+});
+
+const assetModal = document.getElementById('asset-modal');
+const assetEditForm = document.getElementById('asset-edit-form');
+let editingAssetId = '';
+const returnList = document.getElementById('return-list');
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
+}
+function assetRows(id) { return [...document.querySelectorAll(`.holding[data-asset-id="${id}"]`)]; }
+function assetRate(row) {
+  const match = `${row.querySelector('.h-meta')?.textContent || ''} ${row.querySelector('.change')?.textContent || ''}`.match(/\+?(\d+(?:\.\d+)?)%/);
+  return match ? Number(match[1]) : 0;
+}
+function renderReturnView() {
+  const assets = accountHoldings.filter(row => row.isConnected).map(row => ({
+    id: row.dataset.assetId,
+    name: row.querySelector('.h-name').textContent.trim(),
+    amount: row.querySelector('.amount').textContent.trim(),
+    rate: assetRate(row),
+    meta: row.querySelector('.h-meta').textContent.trim(),
+  })).sort((a, b) => b.rate - a.rate);
+  returnList.innerHTML = assets.map((asset, index) => `<div class="holding" data-asset-id="${asset.id}"><div class="lhs"><div class="h-name">${escapeHtml(asset.name)}</div><div class="h-meta">${escapeHtml(asset.meta)}</div></div><div class="rhs"><div class="amount">${escapeHtml(asset.amount)}</div><div class="change orange">第 ${index + 1} 位 · ${asset.rate.toFixed(2)}%</div></div></div>`).join('');
+}
+function openAssetModal(id) {
+  const row = assetRows(id)[0];
+  if (!row) return;
+  editingAssetId = id;
+  document.getElementById('edit-asset-name').value = row.querySelector('.h-name').textContent.trim();
+  document.getElementById('edit-asset-amount').value = row.querySelector('.amount').textContent.trim().replace(/,/g, '');
+  document.getElementById('edit-asset-rate').value = `${assetRate(row)}%`;
+  const date = (row.querySelector('.h-meta').textContent.match(/(20\d{2})\/(\d{2})\/(\d{2})/) || []).slice(1).join('-');
+  document.getElementById('edit-asset-date').value = date;
+  assetModal.classList.add('show');
+  assetModal.setAttribute('aria-hidden', 'false');
+}
+function closeAssetModal() { assetModal.classList.remove('show'); assetModal.setAttribute('aria-hidden', 'true'); }
+document.addEventListener('click', (e) => {
+  const holding = e.target.closest('.holding');
+  if (holding?.dataset.assetId) openAssetModal(holding.dataset.assetId);
+});
+document.querySelectorAll('[data-close-asset]').forEach(el => el.addEventListener('click', closeAssetModal));
+assetModal.addEventListener('click', e => { if (e.target === assetModal) closeAssetModal(); });
+assetEditForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('edit-asset-name').value.trim();
+  const amount = Number(document.getElementById('edit-asset-amount').value.replace(/,/g, ''));
+  const rate = document.getElementById('edit-asset-rate').value.trim().replace(/%$/, '');
+  const date = document.getElementById('edit-asset-date').value;
+  if (!name || Number.isNaN(amount) || !rate) return;
+  assetRows(editingAssetId).forEach(row => {
+    row.querySelector('.h-name').textContent = name;
+    row.querySelector('.amount').textContent = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const meta = row.querySelector('.h-meta');
+    if (/\+?\d+(?:\.\d+)?%/.test(meta.textContent)) meta.innerHTML = meta.innerHTML.replace(/\+?\d+(?:\.\d+)?%/, `${rate}%`);
+    else meta.insertAdjacentHTML('beforeend', `<span>${escapeHtml(rate)}%</span>`);
+    if (date && /20\d{2}\/\d{2}\/\d{2}/.test(meta.textContent)) meta.innerHTML = meta.innerHTML.replace(/20\d{2}\/\d{2}\/\d{2}/, date.replaceAll('-', '/'));
+  });
+  renderReturnView(); closeAssetModal(); showToast('资产已更新');
+});
+document.getElementById('delete-asset').addEventListener('click', () => {
+  if (!editingAssetId || !confirm('确定删除这笔资产吗？此操作仅影响当前演示数据。')) return;
+  assetRows(editingAssetId).forEach(row => row.remove());
+  renderReturnView(); closeAssetModal(); showToast('资产已删除');
+});
+renderReturnView();
+
 /* Segmented controls */
 document.querySelectorAll('.seg').forEach(seg => {
   seg.addEventListener('click', (e) => {
@@ -1188,6 +1286,7 @@ document.querySelectorAll('.seg').forEach(seg => {
     seg.querySelectorAll('.seg-item').forEach(i => i.classList.toggle('active', i === item));
     const scope = seg.closest('.page');
     const view = item.dataset.view;
+    if (view === 'return') renderReturnView();
     scope.querySelectorAll('[data-view-body]').forEach(b => {
       b.style.display = b.dataset.viewBody === view ? '' : 'none';
     });
