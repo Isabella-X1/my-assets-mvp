@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>我的资产 · 资产记录</title>
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --panel: #141414;
+    --panel-2: #1A1A1A;
+    --line: #262626;
+    --line-2: #333;
+    --text: #F5F5F5;
+    --dim: #888;
+    --dim-2: #555;
+    --orange: #FF9500;
+    --red: #FF3B30;
+    --yellow: #FFD60A;
+    --blue: #5AC8FA;
+    --green: #30D158;
+    --mono: "SF Mono", "JetBrains Mono", "Menlo", ui-monospace, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: #111;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    min-height: 100vh;
+    background-image: none;
+  }
+  /* PHONE FRAME */
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: var(--bg);
+    border-radius: 44px;
+    border: 8px solid #1c1c1c;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 0 1px #000;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 140px; height: 26px;
+    background: #050505;
+    border-radius: 0 0 18px 18px;
+    z-index: 100;
+  }
+  /* STATUS BAR */
+  .statusbar {
+    height: 44px;
+    padding: 0 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .statusbar .right { display: flex; gap: 6px; align-items: center; color: var(--text); }
+  /* HEADER (page title bar) */
+  .header {
+    padding: 12px 16px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .header .title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .header .title .cn { color: var(--text); margin-right: 8px; letter-spacing: 0; font-size: 15px; font-weight: 600; }
+  .header .meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 1px;
+  }
+  .header .meta .live { color: var(--green); }
+  .header .meta .live::before {
+    content: ""; display: inline-block; width: 6px; height: 6px;
+    background: var(--green); border-radius: 50%; margin-right: 4px;
+    animation: pulse 1.8s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity: 0.3; } }
+  /* MAIN CONTENT */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .main::-webkit-scrollbar { display: none; }
+  .page { display: none; padding-bottom: 24px; }
+  .page.active { display: block; }
+  /* TAB BAR */
+  .tabbar {
+    height: 68px;
+    background: #0d0d0d;
+    border-top: 1px solid var(--line);
+    display: flex;
+    padding: 6px 0 12px;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--dim-2);
+    cursor: pointer;
+    transition: color 0.12s ease;
+    user-select: none;
+  }
+  .tab-item .icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+  .tab-item .icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .tab-item .label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+  .tab-item.active { color: var(--orange); }
+  .tab-item.center {
+    position: relative;
+  }
+  .tab-item.center .icon {
+    width: 36px; height: 36px;
+    background: var(--orange);
+    color: #000;
+    border-radius: 4px;
+    margin-top: -4px;
+  }
+  .tab-item.center .icon svg { stroke: #000; stroke-width: 2.2; }
+  .tab-item.center.active .icon { background: var(--yellow); }
+  .tab-item.center .label { color: var(--orange); }
+  .tab-item.center.active .label { color: var(--yellow); }
+
+  /* SHARED COMPONENTS */
+  .row { display: flex; align-items: center; }
+  .between { justify-content: space-between; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .dim { color: var(--dim); }
+  .orange { color: var(--orange); }
+  .red { color: var(--red); }
+  .yellow { color: var(--yellow); }
+  .green { color: var(--green); }
+  .blue { color: var(--blue); }
+  .up::before { content: "▲ "; font-size: 8px; vertical-align: 2px; }
+  .down::before { content: "▼ "; font-size: 8px; vertical-align: 2px; }
+  .kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .divider { height: 1px; background: var(--line); }
+  .section-title {
+    padding: 14px 16px 8px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+    font-family: var(--mono);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title .action { color: var(--blue); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; cursor: pointer; }
+
+  /* TOAST */
+  .toast {
+    position: absolute;
+    bottom: 90px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--line-2);
+    padding: 10px 16px;
+    font-size: 12px;
+    font-family: var(--mono);
+    letter-spacing: 1px;
+    color: var(--yellow);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ============ PAGE: DASHBOARD ============ */
+  .hero {
+    padding: 20px 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .hero .total {
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 40px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .hero .total .cur { color: var(--dim); font-size: 20px; margin-right: 4px; vertical-align: 4px; }
+  .hero .delta-row {
+    margin-top: 10px;
+    display: flex;
+    gap: 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .hero .delta-row .item .k { color: var(--dim); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+  .hero .delta-row .item .v { margin-top: 2px; font-weight: 500; }
+
+  /* Structure bar */
+  .struct {
+    padding: 12px 16px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .struct .bar {
+    display: flex;
+    height: 8px;
+    background: var(--panel);
+    overflow: hidden;
+    border-radius: 1px;
+  }
+  .struct .bar > div { height: 100%; }
+  .struct .legend {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .struct .legend .item { display: flex; align-items: center; justify-content: space-between; }
+  .struct .legend .lhs { display: flex; align-items: center; gap: 6px; }
+  .struct .legend .dot { width: 8px; height: 8px; }
+  .struct .legend .name { color: var(--dim); letter-spacing: 0.5px; }
+  .struct .legend .pct { color: var(--text); }
+
+  /* Trend */
+  .trend { padding: 12px 16px 16px; border-bottom: 1px solid var(--line); }
+  .trend .trend-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .trend .trend-head .lhs {
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .trend .trend-head .lhs .t { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
+  .trend .trend-head .lhs .v { font-family: var(--mono); color: var(--orange); font-size: 12px; font-weight: 500; }
+  .trend .trend-head .range { display: flex; gap: 2px; }
+  .trend .trend-head .range span {
+    font-family: var(--mono); font-size: 10px;
+    padding: 3px 7px; color: var(--dim); cursor: pointer;
+    border: 1px solid var(--line);
+    letter-spacing: 0.5px;
+  }
+  .trend .trend-head .range span.active { color: var(--orange); border-color: var(--orange); }
+  .trend svg { display: block; width: 100%; height: 90px; }
+
+  /* Due countdown */
+  .due-card {
+    margin: 12px 16px 0;
+    border: 1px solid var(--red);
+    background: linear-gradient(90deg, rgba(255,59,48,0.08), transparent 60%);
+    padding: 12px 14px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.12s;
+  }
+  .due-card:hover { background: linear-gradient(90deg, rgba(255,59,48,0.14), transparent 60%); }
+  .due-card .head { display: flex; justify-content: space-between; align-items: baseline; }
+  .due-card .head .t {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+    color: var(--red); text-transform: uppercase; font-weight: 600;
+  }
+  .due-card .head .arrow { font-family: var(--mono); color: var(--red); font-size: 14px; }
+  .due-card .list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .due-card .row2 { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .due-card .row2 .name { color: var(--text); }
+  .due-card .row2 .amount { font-family: var(--mono); color: var(--dim); font-size: 11px; margin-top: 2px; }
+  .due-card .row2 .rhs { text-align: right; font-family: var(--mono); }
+  .due-card .row2 .days { font-size: 18px; font-weight: 500; letter-spacing: -0.5px; }
+  .due-card .row2 .days.d-red { color: var(--red); }
+  .due-card .row2 .days.d-yellow { color: var(--yellow); }
+  .due-card .row2 .days.d-orange { color: var(--orange); }
+  .due-card .row2 .days .unit { font-size: 10px; color: var(--dim); margin-left: 2px; letter-spacing: 1px; }
+
+  /* Quick actions */
+  .quick {
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .quick .btn {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 12px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .quick .btn:hover, .quick .btn:active { border-color: var(--orange); background: var(--panel-2); }
+  .quick .btn svg { width: 18px; height: 18px; stroke: var(--text); fill: none; stroke-width: 1.6; }
+  .quick .btn .lbl {
+    font-size: 10px; letter-spacing: 1px; color: var(--dim);
+    font-family: var(--mono); text-transform: uppercase;
+  }
+  .quick .btn:hover .lbl { color: var(--orange); }
+
+  /* Ticker */
+  .ticker {
+    padding: 0 0 8px;
+  }
+  .ticker .ticker-inner {
+    padding: 8px 16px;
+    display: flex;
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: #0d0d0d;
+  }
+  .ticker .ticker-inner::-webkit-scrollbar { display: none; }
+  .ticker .item { flex-shrink: 0; display: flex; gap: 6px; align-items: baseline; }
+  .ticker .item .k { color: var(--dim); letter-spacing: 1px; }
+  .ticker .item .v { color: var(--text); }
+
+  /* ============ PAGE: HOLDINGS ============ */
+  .seg {
+    display: flex;
+    margin: 12px 16px 0;
+    border: 1px solid var(--line);
+  }
+  .seg .seg-item {
+    flex: 1;
+    padding: 8px 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    cursor: pointer;
+    text-transform: uppercase;
+    border-right: 1px solid var(--line);
+    transition: color 0.12s, background 0.12s;
+  }
+  .seg .seg-item:last-child { border-right: none; }
+  .seg .seg-item.active { color: #000; background: var(--orange); }
+
+  .group-head {
+    padding: 16px 16px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .group-head .lhs { display: flex; align-items: baseline; gap: 8px; }
+  .group-head .marker { width: 3px; height: 12px; display: inline-block; margin-right: 4px; vertical-align: -1px; }
+  .group-head .name {
+    font-size: 12px; font-weight: 600; letter-spacing: 1px;
+    color: var(--text);
+  }
+  .group-head .subtle {
+    font-size: 10px; letter-spacing: 1px;
+    color: var(--dim); font-family: var(--mono);
+  }
+  .group-head .sum {
+    font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 500;
+  }
+
+  .holding {
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .holding:hover { background: var(--panel); }
+  .holding .lhs { flex: 1; min-width: 0; }
+  .holding .h-name {
+    font-size: 13px; color: var(--text); font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .holding .h-meta {
+    margin-top: 4px;
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+    letter-spacing: 0.5px;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .holding .h-meta .tag {
+    padding: 1px 5px; border: 1px solid var(--line-2);
+    font-size: 9px; letter-spacing: 1px;
+  }
+  .holding .h-meta .tag.deposit { color: var(--yellow); border-color: rgba(255,214,10,0.4); }
+  .holding .h-meta .tag.wealth { color: var(--orange); border-color: rgba(255,149,0,0.4); }
+  .holding .h-meta .tag.fund { color: var(--blue); border-color: rgba(90,200,250,0.4); }
+  .holding .h-meta .tag.cash { color: var(--dim); border-color: var(--line-2); }
+  .holding .h-meta .tag.gold { color: #d4a017; border-color: rgba(212,160,23,0.4); }
+  .holding .rhs { text-align: right; font-family: var(--mono); flex-shrink: 0; }
+  .holding .amount { font-size: 15px; font-weight: 500; color: var(--text); }
+  .holding .change { margin-top: 4px; font-size: 10px; letter-spacing: 0.5px; }
+
+  /* ============ PAGE: ADD ============ */
+  .add-hero {
+    padding: 32px 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .add-hero .t {
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase;
+  }
+  .add-hero .title {
+    margin-top: 8px;
+    font-size: 22px; font-weight: 600; color: var(--text);
+  }
+  .add-hero .sub {
+    margin-top: 8px; font-size: 12px; color: var(--dim);
+  }
+  .add-options {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .add-btn {
+    border: 1px solid var(--line);
+    padding: 20px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.08s;
+    background: var(--panel);
+  }
+  .add-btn:hover { border-color: var(--orange); background: var(--panel-2); }
+  .add-btn:active { transform: scale(0.98); }
+  .add-btn .ico {
+    width: 40px; height: 40px;
+    border: 1px solid var(--line-2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--orange);
+  }
+  .add-btn .ico svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .add-btn .t {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 1px; color: var(--text); text-transform: uppercase; font-weight: 600;
+  }
+  .add-btn .d { font-size: 11px; color: var(--dim); text-align: center; line-height: 1.5; }
+
+  .add-recent { margin-top: 8px; }
+  .recent-row {
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .recent-row:hover { background: var(--panel); }
+  .recent-row .lhs { display: flex; align-items: center; gap: 10px; }
+  .recent-row .type {
+    font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 1px;
+  }
+  .recent-row .rhs .amt { font-family: var(--mono); color: var(--text); }
+  .recent-row .rhs .time { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+  /* ============ PAGE: REMINDERS ============ */
+  .subscribe-banner {
+    margin: 12px 16px;
+    background: linear-gradient(90deg, rgba(255,214,10,0.10), transparent);
+    border-left: 3px solid var(--yellow);
+    padding: 10px 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+  }
+  .subscribe-banner .txt {
+    font-size: 11px; color: var(--text); line-height: 1.5;
+  }
+  .subscribe-banner .txt strong { color: var(--yellow); font-family: var(--mono); font-weight: 600; }
+  .subscribe-banner .cta {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+    color: #000; background: var(--yellow);
+    padding: 6px 10px; cursor: pointer; text-transform: uppercase; font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .reminder-item {
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+    display: flex; gap: 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .reminder-item:hover { background: var(--panel); }
+  .reminder-item .bar {
+    width: 3px; align-self: stretch; flex-shrink: 0;
+  }
+  .reminder-item.p0 .bar { background: var(--red); }
+  .reminder-item.p1 .bar { background: var(--orange); }
+  .reminder-item.p2 .bar { background: var(--yellow); }
+  .reminder-item.done .bar { background: var(--dim-2); }
+  .reminder-item .body { flex: 1; min-width: 0; }
+  .reminder-item .head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  }
+  .reminder-item .h-title { font-size: 13px; color: var(--text); font-weight: 500; }
+  .reminder-item.done .h-title { color: var(--dim); }
+  .reminder-item .h-date { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 0.5px; flex-shrink: 0; }
+  .reminder-item .meta {
+    margin-top: 6px;
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+    display: flex; gap: 10px; align-items: center;
+  }
+  .reminder-item .meta .status {
+    padding: 1px 5px; border: 1px solid var(--line-2); letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .reminder-item .meta .status.wait { color: var(--yellow); border-color: rgba(255,214,10,0.4); }
+  .reminder-item .meta .status.sent { color: var(--green); border-color: rgba(48,209,88,0.4); }
+  .reminder-item .meta .status.done { color: var(--dim); }
+  .reminder-item .counter {
+    margin-top: 8px;
+    font-family: var(--mono);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .reminder-item .counter .n { font-size: 22px; font-weight: 500; letter-spacing: -0.5px; }
+  .reminder-item.p0 .counter .n { color: var(--red); }
+  .reminder-item.p1 .counter .n { color: var(--orange); }
+  .reminder-item.p2 .counter .n { color: var(--yellow); }
+  .reminder-item.done .counter .n { color: var(--dim); }
+  .reminder-item .counter .u { font-size: 10px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ============ PAGE: PROFILE ============ */
+  .profile-hero {
+    padding: 24px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .profile-hero .avatar {
+    width: 52px; height: 52px;
+    background: var(--panel);
+    border: 1px solid var(--line-2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--orange);
+  }
+  .profile-hero .info .id {
+    font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 1px;
+  }
+  .profile-hero .info .name {
+    font-size: 16px; font-weight: 600; color: var(--text); margin-top: 4px;
+  }
+  .profile-hero .info .stats { margin-top: 6px; display: flex; gap: 14px; font-family: var(--mono); font-size: 10px; }
+  .profile-hero .info .stats .k { color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+  .profile-hero .info .stats .v { color: var(--text); margin-left: 4px; }
+
+  .list-block {
+    border-top: 1px solid var(--line);
+    margin-top: 12px;
+  }
+  .list-row {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .list-row:hover { background: var(--panel); }
+  .list-row .lhs { display: flex; align-items: center; gap: 12px; }
+  .list-row .lhs svg { width: 16px; height: 16px; stroke: var(--dim); fill: none; stroke-width: 1.6; flex-shrink: 0; }
+  .list-row .lhs .t { font-size: 13px; color: var(--text); }
+  .list-row .rhs { display: flex; align-items: center; gap: 6px; }
+  .list-row .rhs .val { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+  .list-row .rhs .chev { color: var(--dim-2); font-family: var(--mono); }
+  .list-row .badge {
+    padding: 1px 5px; font-family: var(--mono); font-size: 9px;
+    background: var(--red); color: #fff; letter-spacing: 1px;
+  }
+  .list-row .toggle {
+    width: 32px; height: 18px; border: 1px solid var(--line-2); position: relative;
+    display: flex; align-items: center;
+  }
+  .list-row .toggle::after {
+    content: ""; width: 12px; height: 12px; background: var(--orange);
+    position: absolute; left: 2px; transition: left 0.15s;
+  }
+  .list-row .toggle.off::after { left: 16px; background: var(--dim-2); }
+  .footer-note {
+    padding: 24px 16px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px; color: var(--dim-2); letter-spacing: 2px;
+  }
+
+  /* ============ MVP: MANUAL ENTRY ============ */
+  .form-card { margin: 16px; padding: 16px; background: var(--panel); border: 1px solid var(--line); }
+  .form-card .intro { font-size: 15px; font-weight: 600; }
+  .form-card .hint { margin-top: 5px; color: var(--dim); font-size: 11px; }
+  .field { margin-top: 16px; }
+  .field label { display: block; margin-bottom: 7px; color: var(--dim); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; }
+  .field input, .field select { width: 100%; height: 40px; padding: 0 10px; color: var(--text); background: #0d0d0d; border: 1px solid var(--line-2); border-radius: 2px; font: 13px var(--sans); }
+  .field select { appearance: auto; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .check-row { margin-top: 16px; display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 12px; }
+  .check-row input { accent-color: var(--orange); }
+  .primary-btn { width: 100%; margin-top: 20px; padding: 12px; border: 0; background: var(--orange); color: #111; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .primary-btn:active { opacity: .8; }
+  .add-account-link { display: inline-block; margin-top: 9px; color: var(--orange); background: none; border: 0; padding: 0; font: 11px var(--sans); cursor: pointer; }
+  .modal-backdrop { position: absolute; inset: 0; display: none; align-items: flex-end; background: rgba(0,0,0,.62); z-index: 80; }
+  .modal-backdrop.show { display: flex; }
+  .modal { width: 100%; padding: 20px 16px 28px; background: #181818; border-top: 1px solid var(--line-2); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close { border: 0; padding: 4px; color: var(--dim); background: none; font-size: 20px; line-height: 1; cursor: pointer; }
+  .modal .primary-btn { margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="right">
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="6" width="2" height="4"/><rect x="4" y="4" width="2" height="6"/><rect x="8" y="2" width="2" height="8"/><rect x="12" y="0" width="2" height="10"/></svg>
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1"><path d="M1 4 Q7 -1 13 4"/><path d="M3 6 Q7 3 11 6"/><circle cx="7" cy="8" r="1" fill="currentColor"/></svg>
+      <svg width="22" height="10" viewBox="0 0 22 10" fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="18" height="9" rx="1.5"/><rect x="2" y="2" width="15" height="6" fill="currentColor"/><rect x="19.5" y="3" width="1.5" height="4" fill="currentColor"/></svg>
+    </div>
+  </div>
+  <div class="header">
+    <div class="title"><span class="cn" id="page-title-cn">资产总览</span><span id="page-title-en">MY ASSETS</span></div>
+    <div class="meta"><span id="clock">更新于 07/19</span></div>
+  </div>
+  <div class="main" id="main">
+    <!-- ============ PAGE 1: DASHBOARD ============ -->
+    <div class="page active" data-page="dashboard">
+      <div class="hero">
+        <div class="label">总资产</div>
+        <div class="total"><span class="cur">¥</span><span id="total-amount">567,358.42</span></div>
+        <div class="delta-row">
+          <div class="item"><div class="k">已记录资产</div><div class="v">8 项</div></div>
+          <div class="item"><div class="k">账户</div><div class="v">3 个</div></div>
+          <div class="item"><div class="k">待处理到期</div><div class="v red">1 项</div></div>
+        </div>
+      </div>
+      <div class="struct">
+        <div class="bar">
+          <div style="width:52.9%;background:var(--orange)"></div>
+          <div style="width:26.4%;background:var(--yellow)"></div>
+          <div style="width:11.4%;background:var(--blue)"></div>
+          <div style="width:5.6%;background:#d4a017"></div>
+          <div style="width:3.7%;background:var(--dim)"></div>
+        </div>
+        <div class="legend">
+          <div class="item"><div class="lhs"><span class="dot" style="background:var(--orange)"></span><span class="name">DEPOSIT 存款</span></div><span class="pct">52.9%</span></div>
+          <div class="item"><div class="lhs"><span class="dot" style="background:var(--yellow)"></span><span class="name">WEALTH 理财</span></div><span class="pct">26.4%</span></div>
+          <div class="item"><div class="lhs"><span class="dot" style="background:var(--blue)"></span><span class="name">FUND 基金</span></div><span class="pct">11.4%</span></div>
+          <div class="item"><div class="lhs"><span class="dot" style="background:#d4a017"></span><span class="name">GOLD 黄金</span></div><span class="pct">5.6%</span></div>
+          <div class="item"><div class="lhs"><span class="dot" style="background:var(--dim)"></span><span class="name">CASH 活期</span></div><span class="pct">3.7%</span></div>
+        </div>
+      </div>
+      <div class="due-card" data-goto="reminders">
+        <div class="head"><span class="t">⚠ UPCOMING MATURITY · 到期倒计时</span><span class="arrow">→</span></div>
+        <div class="list">
+          <div class="row2"><div><div class="name">招行大额存单 3年</div><div class="amount">¥ 200,000.00 · 3.05%</div></div><div class="rhs"><div class="days d-red">08<span class="unit">D</span></div></div></div>
+          <div class="row2"><div><div class="name">招银理财鑫鑫向荣180天</div><div class="amount">¥ 100,000.00 · 2.85%</div></div><div class="rhs"><div class="days d-yellow">45<span class="unit">D</span></div></div></div>
+          <div class="row2"><div><div class="name">建行定期一年</div><div class="amount">¥ 150,000.00 · 2.10%</div></div><div class="rhs"><div class="days d-orange">187<span class="unit">D</span></div></div></div>
+        </div>
+      </div>
+      <div class="section-title"><span>常用操作</span></div>
+      <div class="quick" style="grid-template-columns:repeat(3, 1fr)">
+        <div class="btn" data-goto="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">录入资产</span></div>
+        <div class="btn" data-goto="holdings"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lbl">查看资产</span></div>
+        <div class="btn" data-goto="reminders"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/></svg><span class="lbl">到期提醒</span></div>
+      </div>
+    </div>
+    <!-- ============ PAGE 2: HOLDINGS ============ -->
+    <div class="page" data-page="holdings">
+      <div class="seg" id="holdings-seg">
+        <div class="seg-item active" data-view="account">BY ACCOUNT · 按账户</div>
+        <div class="seg-item" data-view="type">BY TYPE · 按类型</div>
+      </div>
+
+      <!-- View: BY ACCOUNT -->
+      <div class="view" data-view-body="account">
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:var(--red)"></span><span class="name" data-account-label>招商银行 · 尾号 1234</span></div>
+          <span class="sum">¥ 308,500</span>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">招行大额存单 3年</div>
+            <div class="h-meta"><span class="tag deposit">大额存单</span><span>3.05% APR</span><span>2026/07/27 到期</span></div>
+          </div>
+          <div class="rhs"><div class="amount">200,000.00</div><div class="change red">剩余 08 天</div></div>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">招银理财鑫鑫向荣 180天</div>
+            <div class="h-meta"><span class="tag wealth">结构性存款</span><span>2.85% APR</span><span>2026/09/02 到期</span></div>
+          </div>
+          <div class="rhs"><div class="amount">100,000.00</div><div class="change yellow">剩余 45 天</div></div>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">招行活期</div>
+            <div class="h-meta"><span class="tag cash">活期</span><span>0.20% APR</span></div>
+          </div>
+          <div class="rhs"><div class="amount">8,500.00</div><div class="change dim">—</div></div>
+        </div>
+
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:#0e59c9"></span><span class="name" data-account-label>建设银行 · 尾号 5678</span></div>
+          <span class="sum">¥ 162,300</span>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">建行定期一年</div>
+            <div class="h-meta"><span class="tag deposit">定期存款</span><span>2.10% APR</span><span>2027/01/22 到期</span></div>
+          </div>
+          <div class="rhs"><div class="amount">150,000.00</div><div class="change orange">剩余 187 天</div></div>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">建行活期</div>
+            <div class="h-meta"><span class="tag cash">活期</span><span>0.20% APR</span></div>
+          </div>
+          <div class="rhs"><div class="amount">12,300.00</div><div class="change dim">—</div></div>
+        </div>
+
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:#1677ff"></span><span class="name" data-account-label>支付宝</span></div>
+          <span class="sum">¥ 96,558</span>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">天弘沪深300 A</div>
+            <div class="h-meta"><span class="tag fund">基金定投</span><span>+12.5% 累计</span></div>
+          </div>
+          <div class="rhs"><div class="amount">45,200.00</div><div class="change orange up">1.28% · +570</div></div>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">余额宝</div>
+            <div class="h-meta"><span class="tag cash">货币基金</span><span>1.42% 7D</span></div>
+          </div>
+          <div class="rhs"><div class="amount">32,458.42</div><div class="change orange up">1.26 今日</div></div>
+        </div>
+        <div class="holding">
+          <div class="lhs">
+            <div class="h-name">支付宝黄金</div>
+            <div class="h-meta"><span class="tag gold">积存金</span><span>762.4 ¥/g</span></div>
+          </div>
+          <div class="rhs"><div class="amount">18,900.00</div><div class="change orange up">2.3% 今日</div></div>
+        </div>
+      </div>
+
+      <!-- View: BY TYPE -->
+      <div class="view" data-view-body="type" style="display:none">
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:var(--orange)"></span><span class="name">DEPOSIT · 存款类</span><span class="subtle">3 项</span></div>
+          <span class="sum">¥ 350,000</span>
+        </div>
+        <div class="holding"><div class="lhs"><div class="h-name">招行大额存单 3年</div><div class="h-meta"><span>3.05%</span><span>招行</span><span>剩 8 天</span></div></div><div class="rhs"><div class="amount">200,000.00</div><div class="change red">MATURING</div></div></div>
+        <div class="holding"><div class="lhs"><div class="h-name">建行定期一年</div><div class="h-meta"><span>2.10%</span><span>建行</span><span>剩 187 天</span></div></div><div class="rhs"><div class="amount">150,000.00</div><div class="change orange">HOLDING</div></div></div>
+
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:var(--yellow)"></span><span class="name">WEALTH · 理财</span><span class="subtle">1 项</span></div>
+          <span class="sum">¥ 100,000</span>
+        </div>
+        <div class="holding"><div class="lhs"><div class="h-name">招银理财鑫鑫向荣 180天</div><div class="h-meta"><span>2.85%</span><span>招行</span><span>剩 45 天</span></div></div><div class="rhs"><div class="amount">100,000.00</div><div class="change yellow">HOLDING</div></div></div>
+
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:var(--blue)"></span><span class="name">FUND · 基金</span><span class="subtle">1 项</span></div>
+          <span class="sum">¥ 45,200</span>
+        </div>
+        <div class="holding"><div class="lhs"><div class="h-name">天弘沪深300 A</div><div class="h-meta"><span>+12.5%</span><span>支付宝</span></div></div><div class="rhs"><div class="amount">45,200.00</div><div class="change orange up">1.28% 今日</div></div></div>
+
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:#d4a017"></span><span class="name">GOLD · 黄金</span><span class="subtle">1 项</span></div>
+          <span class="sum">¥ 18,900</span>
+        </div>
+        <div class="holding"><div class="lhs"><div class="h-name">支付宝黄金</div><div class="h-meta"><span>762.4 ¥/g</span></div></div><div class="rhs"><div class="amount">18,900.00</div><div class="change orange up">2.3% 今日</div></div></div>
+
+        <div class="group-head">
+          <div class="lhs"><span class="marker" style="background:var(--dim)"></span><span class="name">CASH · 活期</span><span class="subtle">3 项</span></div>
+          <span class="sum">¥ 53,258</span>
+        </div>
+        <div class="holding"><div class="lhs"><div class="h-name">余额宝</div><div class="h-meta"><span>1.42% 7D</span></div></div><div class="rhs"><div class="amount">32,458.42</div><div class="change dim">支付宝</div></div></div>
+        <div class="holding"><div class="lhs"><div class="h-name">建行活期</div><div class="h-meta"><span>0.20%</span></div></div><div class="rhs"><div class="amount">12,300.00</div><div class="change dim">建行</div></div></div>
+        <div class="holding"><div class="lhs"><div class="h-name">招行活期</div><div class="h-meta"><span>0.20%</span></div></div><div class="rhs"><div class="amount">8,500.00</div><div class="change dim">招行</div></div></div>
+      </div>
+    </div>
+    <!-- ============ PAGE 3: ADD ============ -->
+    <div class="page" data-page="add">
+      <form class="form-card" id="asset-form">
+        <div class="intro">录入一笔资产</div>
+        <div class="hint">先记录关键信息；收益、份额等细节以后再补充。</div>
+        <div class="field"><label for="asset-name">资产名称 *</label><input id="asset-name" required placeholder="例如：招行三年期大额存单" /></div>
+        <div class="form-grid">
+          <div class="field"><label for="asset-type">资产类型 *</label><select id="asset-type"><option>存款</option><option>理财</option><option>基金</option><option>黄金</option><option>现金</option><option>其他</option></select></div>
+          <div class="field"><label for="asset-account">所属账户 *</label><select id="asset-account"><option>招商银行 · 尾号 1234</option><option>建设银行 · 尾号 5678</option><option>支付宝</option></select><button class="add-account-link" type="button" data-open-account>+ 添加新账户</button></div>
+        </div>
+        <div class="field"><label for="asset-amount">当前金额（元）*</label><input id="asset-amount" required inputmode="decimal" placeholder="例如：200000.00" /></div>
+        <div class="form-grid">
+          <div class="field"><label for="asset-date">到期日（选填）</label><input id="asset-date" type="date" /></div>
+          <div class="field"><label for="asset-rate">年化利率（选填）</label><input id="asset-rate" inputmode="decimal" placeholder="例如：3.05%" /></div>
+        </div>
+        <label class="check-row"><input type="checkbox" checked /> 到期前 7 天提醒我</label>
+        <button class="primary-btn" type="submit">保存资产</button>
+      </form>
+
+      <div class="section-title"><span>最近录入</span><span class="action">查看全部</span></div>
+      <div class="add-recent">
+        <div class="recent-row" data-toast="查看详情 · 开发中">
+          <div class="lhs">
+            <span style="width:3px;height:22px;background:var(--orange);display:inline-block"></span>
+            <div>
+              <div style="color:var(--text);">招行大额存单 3年</div>
+              <div class="type">DEPOSIT · 招商银行</div>
+            </div>
+          </div>
+          <div class="rhs">
+            <div class="amt">¥ 200,000.00</div>
+            <div class="time">07/12 · 手动录入</div>
+          </div>
+        </div>
+        <div class="recent-row" data-toast="查看详情 · 开发中">
+          <div class="lhs">
+            <span style="width:3px;height:22px;background:var(--blue);display:inline-block"></span>
+            <div>
+              <div style="color:var(--text);">天弘沪深300 A</div>
+              <div class="type">FUND · 支付宝</div>
+            </div>
+          </div>
+          <div class="rhs">
+            <div class="amt">¥ 45,200.00</div>
+            <div class="time">07/10 · MANUAL</div>
+          </div>
+        </div>
+        <div class="recent-row" data-toast="查看详情 · 开发中">
+          <div class="lhs">
+            <span style="width:3px;height:22px;background:#d4a017;display:inline-block"></span>
+            <div>
+              <div style="color:var(--text);">支付宝黄金</div>
+              <div class="type">GOLD · 支付宝</div>
+            </div>
+          </div>
+          <div class="rhs">
+            <div class="amt">¥ 18,900.00</div>
+            <div class="time">07/08 · 手动录入</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE 4: REMINDERS ============ -->
+    <div class="page" data-page="reminders">
+      <div class="subscribe-banner">
+        <div class="txt">还有 <strong>5</strong> 条到期提醒需要授权推送<br/><span style="color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:1px;">QUOTA · 剩余 3 次订阅额度</span></div>
+        <div class="cta" data-toast="订阅授权 · 微信弹窗">授权</div>
+      </div>
+
+      <div class="seg" id="reminders-seg">
+        <div class="seg-item active" data-view="pending">未处理 · 5</div>
+        <div class="seg-item" data-view="sent">已推送 · 2</div>
+        <div class="seg-item" data-view="all">全部 · 12</div>
+      </div>
+
+      <!-- PENDING -->
+      <div class="view" data-view-body="pending">
+        <div class="reminder-item p0" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">招行大额存单 3年 · 即将到期</div><div class="h-date">07/27</div></div>
+            <div class="meta"><span class="status wait">T-7 待推送</span><span>¥ 200,000.00</span><span>3.05%</span></div>
+            <div class="counter"><span class="n">08</span><span class="u">DAYS · 天到期</span></div>
+          </div>
+        </div>
+        <div class="reminder-item p0" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">招行大额存单 3年 · T-1 提醒</div><div class="h-date">07/26</div></div>
+            <div class="meta"><span class="status wait">T-1 待推送</span><span>¥ 200,000.00</span></div>
+            <div class="counter"><span class="n">07</span><span class="u">DAYS</span></div>
+          </div>
+        </div>
+        <div class="reminder-item p1" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">招银理财鑫鑫向荣 180天</div><div class="h-date">08/03</div></div>
+            <div class="meta"><span class="status wait">T-30 待推送</span><span>¥ 100,000.00</span><span>2.85%</span></div>
+            <div class="counter"><span class="n">15</span><span class="u">DAYS · T-30 触发前</span></div>
+          </div>
+        </div>
+        <div class="reminder-item p2" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">建行定期一年 · T-30 提醒</div><div class="h-date">2026/12/22</div></div>
+            <div class="meta"><span class="status wait">T-30 排队中</span><span>¥ 150,000.00</span></div>
+            <div class="counter"><span class="n">157</span><span class="u">DAYS · 至触发</span></div>
+          </div>
+        </div>
+        <div class="reminder-item p2" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">建行定期一年 · T-7 提醒</div><div class="h-date">2027/01/15</div></div>
+            <div class="meta"><span class="status wait">T-7 排队中</span><span>¥ 150,000.00</span></div>
+            <div class="counter"><span class="n">180</span><span class="u">DAYS · 至触发</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENT -->
+      <div class="view" data-view-body="sent" style="display:none">
+        <div class="reminder-item done" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">招行大额存单 3年 · T-30 已推送</div><div class="h-date">06/27</div></div>
+            <div class="meta"><span class="status sent">✓ SENT</span><span>推送于 09:03</span><span>已读</span></div>
+          </div>
+        </div>
+        <div class="reminder-item done" data-toast="查看提醒详情">
+          <div class="bar"></div>
+          <div class="body">
+            <div class="head"><div class="h-title">工行结构性存款 · 到期结算</div><div class="h-date">06/15</div></div>
+            <div class="meta"><span class="status sent">✓ SENT</span><span>推送于 09:00</span><span>已续期</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL -->
+      <div class="view" data-view-body="all" style="display:none">
+        <div style="padding:24px 16px;text-align:center;font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:1px;">
+          共 12 条提醒记录<br/>
+          <span style="color:var(--dim-2);font-size:10px;">— 5 PENDING · 2 SENT · 5 SCHEDULED —</span>
+        </div>
+      </div>
+    </div>
+    <!-- ============ PAGE 5: PROFILE ============ -->
+    <div class="page" data-page="profile">
+      <div class="profile-hero">
+        <div class="avatar">L</div>
+        <div class="info">
+          <div class="id">USER · wxid_****3f2c</div>
+          <div class="name">Lu 的资产记录</div>
+          <div class="stats">
+            <div><span class="k">HOLDINGS</span><span class="v">9</span></div>
+            <div><span class="k">ACCOUNTS</span><span class="v">3</span></div>
+            <div><span class="k">DAYS</span><span class="v">142</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>ACCOUNTS · 账户管理</span></div>
+      <div class="list-block" style="border-top:none;margin-top:0">
+        <div class="list-row" data-edit-account>
+          <div class="lhs"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="1"/><path d="M2 10h20"/></svg><span class="t" data-account-label>招商银行 · 尾号 1234</span></div>
+          <div class="rhs"><span class="val">¥ 308,500</span><span class="chev">编辑 ›</span></div>
+        </div>
+        <div class="list-row" data-edit-account>
+          <div class="lhs"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="1"/><path d="M2 10h20"/></svg><span class="t" data-account-label>建设银行 · 尾号 5678</span></div>
+          <div class="rhs"><span class="val">¥ 162,300</span><span class="chev">编辑 ›</span></div>
+        </div>
+        <div class="list-row" data-edit-account>
+          <div class="lhs"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg><span class="t" data-account-label>支付宝</span></div>
+          <div class="rhs"><span class="val">¥ 96,558</span><span class="chev">编辑 ›</span></div>
+        </div>
+        <div class="list-row" data-open-account>
+          <div class="lhs"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="t" style="color:var(--orange)">添加账户</span></div>
+          <div class="rhs"><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>SECURITY · 安全</span></div>
+      <div class="list-block" style="border-top:none;margin-top:0">
+        <div class="list-row" data-toast="手势密码设置">
+          <div class="lhs"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="1"/><path d="M8 10V6a4 4 0 018 0v4"/></svg><span class="t">手势密码</span></div>
+          <div class="rhs"><span class="val">已开启</span><div class="toggle"></div></div>
+        </div>
+        <div class="list-row" data-toast="指纹解锁 · 开发中">
+          <div class="lhs"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-10 10M12 6a6 6 0 00-6 6M12 10a2 2 0 00-2 2v6M16 14v4M20 12a8 8 0 00-8-8"/></svg><span class="t">指纹 / Face ID</span></div>
+          <div class="rhs"><span class="val">未启用</span><div class="toggle off"></div></div>
+        </div>
+        <div class="list-row" data-toast="后台锁定时长">
+          <div class="lhs"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="t">后台自动锁定</span></div>
+          <div class="rhs"><span class="val">5 分钟</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>DATA · 数据</span></div>
+      <div class="list-block" style="border-top:none;margin-top:0">
+        <div class="list-row" data-toast="导出加密备份">
+          <div class="lhs"><svg viewBox="0 0 24 24"><path d="M12 3v13m0 0l-4-4m4 4l4-4M4 21h16"/></svg><span class="t">导出加密备份</span></div>
+          <div class="rhs"><span class="chev">›</span></div>
+        </div>
+        <div class="list-row" data-toast="快照趋势历史">
+          <div class="lhs"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg><span class="t">资产快照历史</span></div>
+          <div class="rhs"><span class="val">142 条</span><span class="chev">›</span></div>
+        </div>
+        <div class="list-row" data-toast="订阅消息管理">
+          <div class="lhs"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 21h4"/></svg><span class="t">订阅消息管理</span><span class="badge">5</span></div>
+          <div class="rhs"><span class="val">剩 3 次</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>ABOUT · 关于</span></div>
+      <div class="list-block" style="border-top:none;margin-top:0">
+        <div class="list-row" data-toast="隐私协议">
+          <div class="lhs"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-4 8-8 9-4-1-8-4-8-9V7l8-4z"/></svg><span class="t">隐私协议</span></div>
+          <div class="rhs"><span class="chev">›</span></div>
+        </div>
+        <div class="list-row" data-toast="版本信息">
+          <div class="lhs"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span class="t">版本</span></div>
+          <div class="rhs"><span class="val">v0.1.0 · MVP</span></div>
+        </div>
+      </div>
+
+      <div class="footer-note">我的资产 · MVP</div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <div class="toast" id="toast"></div>
+  <div class="modal-backdrop" id="account-modal" aria-hidden="true">
+    <form class="modal" id="account-form">
+      <div class="modal-head"><div class="modal-title" id="account-modal-title">添加账户</div><button type="button" class="modal-close" data-close-account aria-label="关闭">×</button></div>
+      <div class="hint">用于归集不同银行卡、支付平台或现金账户。</div>
+      <div class="field"><label for="account-name">账户名称 *</label><input id="account-name" required maxlength="24" placeholder="例如：工行 · 尾号 8899" /></div>
+      <div class="field"><label for="account-kind">账户类型</label><select id="account-kind"><option>银行卡</option><option>支付平台</option><option>现金账户</option><option>其他</option></select></div>
+      <button class="primary-btn" type="submit">保存账户</button>
+    </form>
+  </div>
+</div>
+<script>
+const TABS = [
+  { id: 'dashboard', cn: '资产总览', en: '概览', icon: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>' },
+  { id: 'holdings', cn: '我的资产', en: '资产', icon: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>' },
+  { id: 'add', cn: '录入资产', en: '录入', icon: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>', center: true },
+  { id: 'reminders', cn: '到期提醒', en: '提醒', icon: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 21h4"/></svg>', badge: 5 },
+  { id: 'profile', cn: '我的', en: '我的', icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>' },
+];
+
+const tabbar = document.getElementById('tabbar');
+const titleCn = document.getElementById('page-title-cn');
+const titleEn = document.getElementById('page-title-en');
+const toastEl = document.getElementById('toast');
+
+TABS.forEach((t, i) => {
+  const el = document.createElement('div');
+  el.className = 'tab-item' + (i === 0 ? ' active' : '') + (t.center ? ' center' : '');
+  el.dataset.tab = t.id;
+  el.innerHTML = `
+    <div class="icon" style="position:relative">${t.icon}${t.badge ? `<span style="position:absolute;top:-4px;right:-8px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;padding:1px 4px;letter-spacing:0.5px">${t.badge}</span>` : ''}</div>
+    <div class="label">${t.en}</div>
+  `;
+  el.addEventListener('click', () => switchTab(t.id));
+  tabbar.appendChild(el);
+});
+
+function switchTab(id) {
+  const tab = TABS.find(t => t.id === id);
+  if (!tab) return;
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.dataset.page === id));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+  titleCn.textContent = tab.cn;
+  titleEn.textContent = tab.en;
+  document.getElementById('main').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+/* Global click delegation for [data-goto] and [data-toast] */
+document.addEventListener('click', (e) => {
+  const gotoEl = e.target.closest('[data-goto]');
+  if (gotoEl) { switchTab(gotoEl.dataset.goto); return; }
+  const toastElx = e.target.closest('[data-toast]');
+  if (toastElx) { showToast(toastElx.dataset.toast); return; }
+});
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toastEl.classList.remove('show'), 1500);
+}
+
+/* Account management: add an account while recording an asset, or rename it from “我的”. */
+const accountModal = document.getElementById('account-modal');
+const accountForm = document.getElementById('account-form');
+const accountNameInput = document.getElementById('account-name');
+const accountTitle = document.getElementById('account-modal-title');
+const accountSelect = document.getElementById('asset-account');
+let editingAccountName = '';
+
+function openAccountModal(name = '') {
+  editingAccountName = name;
+  accountForm.reset();
+  accountNameInput.value = name;
+  accountTitle.textContent = name ? '修改账户名称' : '添加账户';
+  accountModal.classList.add('show');
+  accountModal.setAttribute('aria-hidden', 'false');
+  setTimeout(() => accountNameInput.focus(), 0);
+}
+
+function closeAccountModal() {
+  accountModal.classList.remove('show');
+  accountModal.setAttribute('aria-hidden', 'true');
+}
+
+document.querySelectorAll('[data-open-account]').forEach(el => el.addEventListener('click', () => openAccountModal()));
+document.querySelectorAll('[data-edit-account]').forEach(el => el.addEventListener('click', () => {
+  openAccountModal(el.querySelector('[data-account-label]').textContent.trim());
+}));
+document.querySelectorAll('[data-close-account]').forEach(el => el.addEventListener('click', closeAccountModal));
+accountModal.addEventListener('click', (e) => { if (e.target === accountModal) closeAccountModal(); });
+
+accountForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nextName = accountNameInput.value.trim();
+  if (!nextName) return;
+
+  if (editingAccountName) {
+    document.querySelectorAll('[data-account-label]').forEach(el => {
+      if (el.textContent.trim() === editingAccountName) el.textContent = nextName;
+    });
+    [...accountSelect.options].forEach(option => {
+      if (option.textContent === editingAccountName) option.textContent = nextName;
+    });
+    showToast('账户名称已修改');
+  } else {
+    const option = new Option(nextName, nextName, true, true);
+    accountSelect.add(option);
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    row.setAttribute('data-edit-account', '');
+    row.innerHTML = '<div class="lhs"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="1"/><path d="M2 10h20"/></svg><span class="t" data-account-label></span></div><div class="rhs"><span class="val">¥ 0</span><span class="chev">编辑 ›</span></div>';
+    row.querySelector('[data-account-label]').textContent = nextName;
+    row.addEventListener('click', () => openAccountModal(row.querySelector('[data-account-label]').textContent.trim()));
+    document.querySelector('.list-row[data-open-account]').before(row);
+    showToast('新账户已添加并选中');
+  }
+  closeAccountModal();
+});
+
+/* Segmented controls */
+document.querySelectorAll('.seg').forEach(seg => {
+  seg.addEventListener('click', (e) => {
+    const item = e.target.closest('.seg-item');
+    if (!item) return;
+    seg.querySelectorAll('.seg-item').forEach(i => i.classList.toggle('active', i === item));
+    const scope = seg.closest('.page');
+    const view = item.dataset.view;
+    scope.querySelectorAll('[data-view-body]').forEach(b => {
+      b.style.display = b.dataset.viewBody === view ? '' : 'none';
+    });
+  });
+});
+
+/* Range picker on trend */
+document.querySelectorAll('.trend .range span').forEach(s => {
+  s.addEventListener('click', () => {
+    s.parentElement.querySelectorAll('span').forEach(x => x.classList.toggle('active', x === s));
+  });
+});
+
+/* MVP manual entry: confirm a record locally, then return to the asset list. */
+document.getElementById('asset-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  showToast('已保存，可在“我的资产”中查看');
+  e.currentTarget.reset();
+  switchTab('holdings');
+});
+
+/* Clock updater */
+(function clock() {
+  const el = document.getElementById('clock');
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function update() {
+    const d = new Date();
+    el.textContent = `更新于 ${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  update();
+  setInterval(update, 30000);
+})();
+</script>
+</body>
+</html>
