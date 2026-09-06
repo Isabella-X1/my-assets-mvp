@@ -1,13 +1,35 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="refresh" content="0; url=prototype.html" />
-  <title>我的资产</title>
-  <script>location.replace('prototype.html');</script>
-</head>
-<body>
-  <p>正在打开 <a href="prototype.html">我的资产</a>…</p>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="description" content="安全记录账户、资产与到期日，随时掌握个人资产全貌。" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="我的资产" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="我的资产" />
+    <meta property="og:description" content="安全记录账户、资产与到期日，清晰掌握个人资产全貌。" />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="我的资产" />
+    <meta name="twitter:description" content="安全记录账户、资产与到期日，清晰掌握个人资产全貌。" />
+    <meta name="twitter:image" content="/og.png" />
+    <link rel="stylesheet" href="./src/boot.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>我的资产</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="boot-screen">
+        <div class="boot-mark">资</div>
+        <p>正在打开我的资产…</p>
+        <small class="boot-help">当前应用不能通过双击 index.html 直接运行，请使用本地预览地址或部署后的网址。</small>
+      </div>
+    </div>
+    <noscript>请开启 JavaScript 后使用“我的资产”。</noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

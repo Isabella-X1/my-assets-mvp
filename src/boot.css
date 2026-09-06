@@ -1,0 +1,63 @@
+:root {
+  color-scheme: dark;
+  background: #090909;
+  color: #f6f6f3;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  background: #090909;
+}
+
+.boot-screen {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding:
+    max(32px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right))
+    max(32px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  align-content: safe center;
+  justify-items: center;
+  gap: 16px;
+  color: #8c8c87;
+  text-align: center;
+}
+
+.boot-mark {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border: 1px solid rgba(255, 149, 0, 0.45);
+  border-radius: 18px;
+  background: rgba(255, 149, 0, 0.14);
+  color: #ff9500;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.boot-screen p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.boot-help {
+  max-width: 390px;
+  color: #ff9500;
+  font-size: 12px;
+  line-height: 1.7;
+  opacity: 0;
+  animation: reveal-boot-help 0s 1.2s forwards;
+}
+
+@keyframes reveal-boot-help {
+  to { opacity: 1; }
+}

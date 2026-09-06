@@ -1,0 +1,57 @@
+# Local identifier used by the Supabase CLI. The remote project reference is
+# stored by `supabase link` and must never be hard-coded or committed here.
+project_id = "my-assets-pwa"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+# Vector buckets are not part of this project and require a paid plan. Keep the
+# setting explicit so CLI config push does not apply its implicit true default.
+[storage.vector]
+enabled = false
+max_buckets = 10
+max_indexes = 5
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = [
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5173/reset-password",
+  "http://localhost:5173",
+  "http://localhost:5173/reset-password",
+]
+jwt_expiry = 3600
+minimum_password_length = 8
+# The first private user is created by an administrator in Auth > Users.
+# Public self-registration stays disabled for this personal first version.
+enable_signup = false
+
+[auth.email]
+# Keep the email provider available for existing users. The global
+# auth.enable_signup=false above remains the public-registration boundary.
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+max_frequency = "1m"
+otp_length = 8
+
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
