@@ -2,7 +2,7 @@
 
 一个面向手机使用的私人资产记录工具。正式版前端由 Netlify 托管，账户与资产数据保存在 Supabase PostgreSQL 中。
 
-> 项目需求、8 步实施计划、真实验收状态和下次续接位置，以 [需求与实施进度文档](docs/PROJECT_REQUIREMENTS_AND_PROGRESS.md) 为准。第 1～7 步均已由用户确认；第 8 步最终审计、GitHub 同步、Netlify 首次发布和 Supabase 正式回调配置已完成，剩余自动部署复验和手机终验。
+> 项目需求、8 步实施计划、真实验收状态和下次续接位置，以 [需求与实施进度文档](docs/PROJECT_REQUIREMENTS_AND_PROGRESS.md) 为准。第 1～7 步均已由用户确认；第 8 步最终审计、GitHub 同步、Netlify 自动部署和 Supabase 正式回调配置已完成，只剩手机终验。
 
 正式网址：[https://isabella-my-assets.netlify.app](https://isabella-my-assets.netlify.app)
 
