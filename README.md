@@ -1,8 +1,10 @@
 # 我的资产 PWA
 
-一个面向手机使用的私人资产记录工具。正式版前端将由 Netlify 托管，账户与资产数据保存在 Supabase PostgreSQL 中。
+一个面向手机使用的私人资产记录工具。正式版前端由 Netlify 托管，账户与资产数据保存在 Supabase PostgreSQL 中。
 
-> 项目需求、8 步实施计划、真实验收状态和下次续接位置，以 [需求与实施进度文档](docs/PROJECT_REQUIREMENTS_AND_PROGRESS.md) 为准。第 1～7 步均已由用户确认，第 8 步最终审计已通过，GitHub 同步已获用户确认。正式 HTTPS 手机上的安装与完全断网测试留到部署后的终验。
+> 项目需求、8 步实施计划、真实验收状态和下次续接位置，以 [需求与实施进度文档](docs/PROJECT_REQUIREMENTS_AND_PROGRESS.md) 为准。第 1～7 步均已由用户确认；第 8 步最终审计、GitHub 同步、Netlify 首次发布和 Supabase 正式回调配置已完成，剩余自动部署复验和手机终验。
+
+正式网址：[https://isabella-my-assets.netlify.app](https://isabella-my-assets.netlify.app)
 
 ## 当前代码包含（不等于逐步验收完成）
 
@@ -59,6 +61,6 @@ npm run build
 
 ## Netlify
 
-仓库已经包含 `netlify.toml`。将 GitHub 仓库连接到 Netlify 后，在站点环境变量中设置 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_PUBLISHABLE_KEY`；Netlify 会运行 `npm run build` 并发布 `dist`。
+仓库已经包含 `netlify.toml`。Netlify 站点 `isabella-my-assets` 已连接 GitHub `main` 分支；站点环境变量包含 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_PUBLISHABLE_KEY`，每次推送后会运行 `npm run build` 并发布 `dist`。
 
-正式域名还应加入 Supabase Authentication 的 Site URL 和 Redirect URLs。
+正式域名已加入 Supabase Authentication 的 Site URL 和 Redirect URLs。

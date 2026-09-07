@@ -39,8 +39,10 @@ test('only public Supabase browser configuration is documented', () => {
   assert.doesNotMatch(envExample, /service_role|sb_secret_|JWT_SECRET|DATABASE_URL/i);
 });
 
-test('auth redirect configuration contains the local preview origin', () => {
-  assert.match(authConfig, /site_url\s*=\s*"http:\/\/127\.0\.0\.1:5173"/);
+test('auth redirect configuration uses production while retaining local preview origins', () => {
+  assert.match(authConfig, /site_url\s*=\s*"https:\/\/isabella-my-assets\.netlify\.app"/);
+  assert.match(authConfig, /additional_redirect_urls\s*=\s*\[[^\]]*https:\/\/isabella-my-assets\.netlify\.app/);
+  assert.match(authConfig, /https:\/\/isabella-my-assets\.netlify\.app\/reset-password/);
   assert.match(authConfig, /additional_redirect_urls\s*=\s*\[[^\]]*http:\/\/127\.0\.0\.1:5173/);
   assert.match(authConfig, /http:\/\/127\.0\.0\.1:5173\/reset-password/);
 });

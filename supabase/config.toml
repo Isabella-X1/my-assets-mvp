@@ -27,8 +27,10 @@ max_indexes = 5
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:5173"
+site_url = "https://isabella-my-assets.netlify.app"
 additional_redirect_urls = [
+  "https://isabella-my-assets.netlify.app",
+  "https://isabella-my-assets.netlify.app/reset-password",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:5173/reset-password",
   "http://localhost:5173",
