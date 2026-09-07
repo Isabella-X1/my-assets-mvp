@@ -236,6 +236,17 @@ noscript {
   background: var(--orange);
 }
 
+.sync-state i.offline,
+.sync-state i.idle {
+  background: var(--muted);
+  box-shadow: none;
+}
+
+.sync-state i.error {
+  background: var(--red);
+  box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.08);
+}
+
 @keyframes pulse {
   50% { opacity: 0.25; }
 }

@@ -133,6 +133,14 @@ function updatedTime() {
   }).format(state.lastSyncedAt);
 }
 
+function syncIndicator() {
+  if (!state.online) return { className: 'offline', label: '当前离线' };
+  if (state.syncing) return { className: 'syncing', label: '正在同步' };
+  if (state.dataError) return { className: 'error', label: '同步失败' };
+  if (!state.lastSyncedAt) return { className: 'idle', label: '尚未同步' };
+  return { className: '', label: `上次同步 ${updatedTime()}` };
+}
+
 function invalidateSync() {
   syncGeneration += 1;
   state.syncing = false;
@@ -181,8 +189,9 @@ function updateLiveStatus() {
   if (syncState) {
     const dot = syncState.querySelector('i');
     const label = syncState.querySelector('span');
-    dot?.classList.toggle('syncing', state.syncing);
-    if (label) label.textContent = state.syncing ? '正在同步' : `上次同步 ${updatedTime()}`;
+    const indicator = syncIndicator();
+    if (dot) dot.className = indicator.className;
+    if (label) label.textContent = indicator.label;
   }
   document.querySelectorAll('[data-action="refresh"]').forEach((button) => {
     button.disabled = state.syncing || !state.online;
@@ -675,6 +684,7 @@ function renderStatusBanner() {
 
 function renderShell() {
   const statusBanner = renderStatusBanner();
+  const indicator = syncIndicator();
   const page = state.dataLoaded ? {
     overview: renderOverview,
     assets: renderAssets,
@@ -688,7 +698,7 @@ function renderShell() {
       ${statusBanner}
       <header class="app-header">
         <a class="wordmark" href="#" data-tab-target="overview" aria-label="返回资产总览"><span>资</span><strong>我的资产</strong></a>
-        <div class="sync-state"><i class="${state.syncing ? 'syncing' : ''}"></i><span>${state.syncing ? '正在同步' : `上次同步 ${updatedTime()}`}</span></div>
+        <div class="sync-state"><i class="${indicator.className}"></i><span>${indicator.label}</span></div>
       </header>
       <main class="app-main">${page}</main>
       ${state.dataLoaded ? `<nav class="bottom-nav" aria-label="主要导航">

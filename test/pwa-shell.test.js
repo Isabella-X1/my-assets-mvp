@@ -57,6 +57,12 @@ test('an offline cold start gates private data instead of rendering a false zero
   assert.match(appSource, /if \(!state\.online\) \{[\s\S]*if \(!state\.dataLoaded\) \{[\s\S]*state\.dataStatus = 'offline'/);
 });
 
+test('sync indicator never reports a successful state while offline or after an error', () => {
+  assert.match(appSource, /if \(!state\.online\) return \{ className: 'offline', label: '当前离线' \}/);
+  assert.match(appSource, /if \(state\.dataError\) return \{ className: 'error', label: '同步失败' \}/);
+  assert.match(appSource, /if \(!state\.lastSyncedAt\) return \{ className: 'idle', label: '尚未同步' \}/);
+});
+
 test('deployment keeps entry metadata fresh and fingerprints long-lived assets', () => {
   assert.match(netlifyConfig, /for = "\/service-worker\.js"[\s\S]*Cache-Control = "no-cache"/);
   assert.match(netlifyConfig, /for = "\/index\.html"[\s\S]*Cache-Control = "no-cache"/);
