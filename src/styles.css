@@ -1332,7 +1332,11 @@ body:has(dialog[open]) {
   }
 
   .sync-state span {
-    display: none;
+    display: block;
+    max-width: 112px;
+    overflow: hidden;
+    font-size: 9px;
+    text-overflow: ellipsis;
   }
 
   .page-intro {

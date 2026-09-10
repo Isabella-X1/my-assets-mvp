@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const [html, manifestText, serviceWorker, appSource, netlifyConfig, icon192, icon512] = await Promise.all([
+const [html, manifestText, serviceWorker, appSource, appStyles, netlifyConfig, icon192, icon512] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'),
   readFile(new URL('../src/service-worker.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
   readFile(new URL('../netlify.toml', import.meta.url), 'utf8'),
   readFile(new URL('../public/icons/icon-192.png', import.meta.url)),
   readFile(new URL('../public/icons/icon-512.png', import.meta.url)),
@@ -61,6 +62,7 @@ test('sync indicator never reports a successful state while offline or after an 
   assert.match(appSource, /if \(!state\.online\) return \{ className: 'offline', label: '当前离线' \}/);
   assert.match(appSource, /if \(state\.dataError\) return \{ className: 'error', label: '同步失败' \}/);
   assert.match(appSource, /if \(!state\.lastSyncedAt\) return \{ className: 'idle', label: '尚未同步' \}/);
+  assert.doesNotMatch(appStyles, /\.sync-state span\s*\{\s*display:\s*none/);
 });
 
 test('deployment keeps entry metadata fresh and fingerprints long-lived assets', () => {
