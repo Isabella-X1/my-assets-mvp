@@ -31,6 +31,11 @@ test('portfolio return and asset annual rates use unambiguous labels', () => {
   assert.doesNotMatch(appSource, /<span>收益率<\/span>/);
 });
 
+test('asset type choices include wealth-management products', () => {
+  assert.match(appSource, /\['定期存款', '活期存款', '理财', '现金'/);
+  assert.match(appSource, /'理财': '#[0-9a-f]{6}'/i);
+});
+
 test('modal validation errors render inside the active top-layer dialog', () => {
   assert.match(appSource, /dialog\[open\] \[data-dialog-toast\]/);
   assert.equal((appSource.match(/data-dialog-toast/g) || []).length, 3);

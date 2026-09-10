@@ -105,6 +105,7 @@ function typeColor(type) {
   const palette = {
     '定期存款': '#ff9500',
     '活期存款': '#ffd60a',
+    '理财': '#ff6b35',
     '现金': '#ffd60a',
     '基金': '#5ac8fa',
     '股票': '#bf5af2',
@@ -485,7 +486,7 @@ function newRecordId() {
 }
 
 function typeOptions(selected = '') {
-  return ['定期存款', '活期存款', '现金', '基金', '股票', '债券', '保险', '其他']
+  return ['定期存款', '活期存款', '理财', '现金', '基金', '股票', '债券', '保险', '其他']
     .map((type) => `<option value="${type}" ${type === selected ? 'selected' : ''}>${type}</option>`)
     .join('');
 }
